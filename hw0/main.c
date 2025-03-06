@@ -2,56 +2,57 @@
 #include <string.h>
 
 typedef struct Node {
-    char character;       
+    char character;        
     int count;             
     struct Node* next;     
 } Node;
 
-//using ASCII as memory because cannot use stdlib (malloc)
 const int MAX_NODES = 128;
-Node total_node[MAX_NODES];
-int total_node_index = 0;
+Node nodePool[MAX_NODES];
+int nodePoolIndex = 0;
 
-Node* createNode(char c) {
-    if (total_node_index < MAX_NODES) {
-        Node* new_node = &total_node[total_node_index++];
-        new_node->character = c;
-        new_node->count = 1;
-        new_node->next = NULL;
-        return new_node;
+// quick search using array ASCII
+Node* charNodes[128] = {NULL};  
+
+Node* createNode(char ascii) {
+    if (nodePoolIndex < MAX_NODES) {
+        Node* newNode = &nodePool[nodePoolIndex++];
+        newNode->character = ascii;
+        newNode->count = 1;
+        newNode->next = NULL;
+        return newNode;
     }
     printf("Error: Out of memory for nodes\n");
     return NULL;
 }
 
-Node* findOrAdd(Node* head, char c) {
-    // if the list is empty, create the first node
-    if (head == NULL) {
-        return createNode(c);
-    }
-    
-    // Check if the char is in the list
-    Node* current = head;
-    Node* prev = NULL;
-    
-    while (current != NULL) {
-        if (current->character == c) {
-            // if char found, plus count
-            current->count++;
-            return head;
+void processChar(char ascii, Node** firstNode) {
+    unsigned char index = (unsigned char)ascii;  // Use as array index
+
+    //if new char
+    if (charNodes[index] == NULL) {
+        // new character
+        Node* newNode = createNode(ascii);
+        if (newNode == NULL) return;  
+        
+        // create the first node
+        if (*firstNode == NULL) {
+            *firstNode = newNode; 
+        } else {
+            // find the last node
+            Node* current = *firstNode;
+            while (current->next != NULL) {
+                current = current->next;
+            }
+            current->next = newNode;
         }
-        prev = current;
-        current = current->next;
+        
+        // store in our direct access array
+        charNodes[index] = newNode;
+    } else {
+        // if char already exists, add the count
+        charNodes[index]->count++;
     }
-    
-    // if char not found, add a new node
-    Node* new_node = createNode(c);
-    if (new_node != NULL) {
-        // add to the end of the list
-        prev->next = new_node;
-    }
-    
-    return head;
 }
 
 int main() {
@@ -61,22 +62,22 @@ int main() {
         return 1;
     }
     
-    Node* head = NULL;  
-    int c;
+    Node* firstNode = NULL;  
+    int ascii;
     
-    while ((c = fgetc(file)) != EOF) {
-        head = findOrAdd(head, (char)c);
+    while ((ascii = fgetc(file)) != EOF) {
+        processChar((char)ascii, &firstNode);
     }
     
     fclose(file);
     
-    // print char counts
-    Node* current = head;
+    // Print 
+    Node* current = firstNode;
     while (current != NULL) {
-
         if ((current->character >= 32 && current->character <= 126) || 
             current->character == '\n' || current->character == '\t') {
             
+            // newline and tab 
             if (current->character == '\n') {
                 printf("\\n : %d\n", current->count);
             } else if (current->character == '\t') {
