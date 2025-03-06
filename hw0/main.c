@@ -8,7 +8,7 @@ typedef struct Node {
 } Node;
 
 //using ASCII as memory because cannot use stdlib (malloc)
-const int MAX_NODES = 256;
+const int MAX_NODES = 128;
 Node total_node[MAX_NODES];
 int total_node_index = 0;
 
