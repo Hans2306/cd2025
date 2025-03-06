@@ -1,3 +1,5 @@
+Time complexity O(1) if char already exist
+
 The program uses a linked list to store each character and how many times it appears. 
 It also uses an array called charNodes[128] to remember where each character's node is.
 When the program sees a character, it first checks the array to see if the character already has a node. 
